@@ -25,21 +25,18 @@ No installation required. Just ensure you have Python 3 installed on your system
 ## Usage
 
 ```bash
-./fountain_setup_parser.py input.fountain -o output.fountain
+./fountain_setup_parser.py screenplay.fountain
 ```
 
 Or with Python:
 
 ```bash
-python3 fountain_setup_parser.py input.fountain -o output.fountain
+python3 fountain_setup_parser.py screenplay.fountain
 ```
 
-If no output file is specified, the tool will create a file with "SHOTLIST_" prepended to the input filename:
-
-```bash
-./fountain_setup_parser.py screenplay.fountain
-# Creates: SHOTLIST_screenplay.fountain
-```
+This automatically creates two output files:
+- `SCHEDULE_screenplay.fountain` - Reorganized by camera setup for efficient filming
+- `SETUPSCREENPLAY_screenplay.fountain` - Chronological screenplay with setup headers
 
 ## Input Format
 
@@ -61,9 +58,12 @@ Character walks into frame.
 Insert shot of hands working.
 ```
 
-## Output Format
+## Output Formats
 
-The tool reorganizes content by setup letter, with clear sections and trackable scene headings:
+The tool creates two complementary files:
+
+### Schedule Format (`SCHEDULE_*.fountain`)
+Reorganized by camera setup for efficient filming:
 
 ```fountain
 # SETUP A
@@ -83,6 +83,23 @@ Character delivers dialogue.
 .[ ] From Scene 1 (SETUP B: Handheld close-up) #1B#
 
 Insert shot of hands working.
+```
+
+### Screenplay Format (`SETUPSCREENPLAY_*.fountain`)
+Chronological script with setup headers:
+
+```fountain
+.SCENE 1 - SETUP A: Tripod behind booth for wide coverage #1A#
+
+Character walks into frame.
+
+.SETUP B: Handheld close-up #1B#
+
+Insert shot of hands working.
+
+.SCENE 2 - SETUP A: Tripod behind booth for wide coverage #2A#
+
+Character delivers dialogue.
 ```
 
 ### Scene Numbering
@@ -115,9 +132,14 @@ This allows quick reference to both the original scene number and the camera set
 ## Example Workflow
 
 1. Write your screenplay with setup annotations
-2. Run the parser to generate a shooting schedule organized by setup
-3. Film all "SETUP A" shots together, then all "SETUP B" shots, etc.
-4. Reference scene numbers to maintain story continuity during editing
+2. Run the parser: `python3 fountain_setup_parser.py screenplay.fountain`
+3. Use `SCHEDULE_screenplay.fountain` on set to film all "SETUP A" shots together, then all "SETUP B" shots, etc.
+4. Use `SETUPSCREENPLAY_screenplay.fountain` as a readable script reference
+5. Reference scene markers (e.g., `#1A#`, `#2B#`) to maintain story continuity during editing
+
+## Known Issues
+
+- **SETUPSCREENPLAY format**: Content that appears before the first scene heading in the original screenplay (such as title pages, character lists, or opening credits) is not included in the SETUPSCREENPLAY output. Only content within scenes with setup annotations is processed.
 
 ## License
 

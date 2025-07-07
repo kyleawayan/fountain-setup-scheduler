@@ -49,6 +49,14 @@ class FountainSetupParser:
         setup_groups = self._group_by_setup(scenes)
         return self._format_output(setup_groups)
     
+    def parse_file_as_screenplay(self, file_path: str) -> str:
+        """Parse a Fountain file and return as screenplay with setup headers."""
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        scenes = self._extract_scenes(content)
+        return self._format_as_screenplay(scenes)
+    
     def _extract_scenes(self, content: str) -> List[SceneContent]:
         """Extract all scenes with their setups and content."""
         lines = content.split('\n')
@@ -152,6 +160,36 @@ class FountainSetupParser:
         
         return setup_groups
     
+    def _get_scene_suffix(self, scene_setup_count: dict, scene_setup_key: tuple) -> str:
+        """Generate disambiguation suffix for scene/setup combination."""
+        if scene_setup_key not in scene_setup_count:
+            scene_setup_count[scene_setup_key] = 0
+            return ''
+        else:
+            scene_setup_count[scene_setup_key] += 1
+            count = scene_setup_count[scene_setup_key]
+            
+            # Generate suffix: A-Z, then AA-ZZ, then AAA-ZZZ
+            if count <= 26:
+                return chr(ord('A') + count - 1)
+            elif count <= 26 + 26*26:
+                count -= 26
+                first = (count - 1) // 26
+                second = (count - 1) % 26
+                return chr(ord('A') + first) + chr(ord('A') + second)
+            elif count <= 26 + 26*26 + 26*26*26:
+                count -= (26 + 26*26)
+                first = (count - 1) // (26 * 26)
+                second = ((count - 1) // 26) % 26
+                third = (count - 1) % 26
+                return chr(ord('A') + first) + chr(ord('A') + second) + chr(ord('A') + third)
+            else:
+                scene_number, setup_letter = scene_setup_key
+                raise ValueError(
+                    f"Too many variations of Scene {scene_number}, Setup {setup_letter}. "
+                    f"Maximum of {26 + 26*26 + 26*26*26} variations supported."
+                )
+    
     def _format_output(self, setup_groups: Dict[str, List[SceneContent]]) -> str:
         """Format the reorganized content as Fountain."""
         output = []
@@ -178,35 +216,7 @@ class FountainSetupParser:
                 scene_setup_key = (scene.scene_number, scene.setup.letter)
                 
                 # Get disambiguation suffix
-                if scene_setup_key not in scene_setup_count:
-                    scene_setup_count[scene_setup_key] = 0
-                    suffix = ''
-                else:
-                    scene_setup_count[scene_setup_key] += 1
-                    count = scene_setup_count[scene_setup_key]
-                    
-                    # Generate suffix: A-Z, then AA-ZZ, then AAA-ZZZ
-                    if count <= 26:
-                        # Single letter: A-Z
-                        suffix = chr(ord('A') + count - 1)
-                    elif count <= 26 + 26*26:
-                        # Double letters: AA-ZZ
-                        count -= 26
-                        first = (count - 1) // 26
-                        second = (count - 1) % 26
-                        suffix = chr(ord('A') + first) + chr(ord('A') + second)
-                    elif count <= 26 + 26*26 + 26*26*26:
-                        # Triple letters: AAA-ZZZ
-                        count -= (26 + 26*26)
-                        first = (count - 1) // (26 * 26)
-                        second = ((count - 1) // 26) % 26
-                        third = (count - 1) % 26
-                        suffix = chr(ord('A') + first) + chr(ord('A') + second) + chr(ord('A') + third)
-                    else:
-                        raise ValueError(
-                            f"Too many variations of Scene {scene.scene_number}, Setup {scene.setup.letter}. "
-                            f"Maximum of {26 + 26*26 + 26*26*26} variations supported."
-                        )
+                suffix = self._get_scene_suffix(scene_setup_count, scene_setup_key)
                 
                 # Add scene heading with setup description and marker
                 scene_label = f'Scene {scene.scene_number}' if scene.scene_number else 'Scene'
@@ -235,6 +245,44 @@ class FountainSetupParser:
                 output.append('')
         
         return '\n'.join(output)
+    
+    def _format_as_screenplay(self, scenes: List[SceneContent]) -> str:
+        """Format scenes as a screenplay with setup headers in chronological order."""
+        output = []
+        scene_setup_count = {}
+        current_scene_number = None
+        
+        for scene in scenes:
+            # Create key for tracking this scene/setup combination
+            scene_setup_key = (scene.scene_number, scene.setup.letter)
+            
+            # Get disambiguation suffix
+            suffix = self._get_scene_suffix(scene_setup_count, scene_setup_key)
+            
+            # Add setup as scene heading, with scene number if we're starting a new scene
+            marker = f'#{scene.scene_number}{scene.setup.letter}{suffix}#'
+            if scene.scene_number != current_scene_number:
+                scene_prefix = f'SCENE {scene.scene_number} - '
+                current_scene_number = scene.scene_number
+            else:
+                scene_prefix = ''
+            
+            output.append(f'.{scene_prefix}SETUP {scene.setup.letter}: {scene.setup.description} {marker}')
+            output.append('')
+            
+            # Add content lines (keep all content for screenplay readability)
+            content_lines = scene.content_lines
+            
+            # Remove leading/trailing empty lines
+            while content_lines and not content_lines[0].strip():
+                content_lines = content_lines[1:]
+            while content_lines and not content_lines[-1].strip():
+                content_lines = content_lines[:-1]
+            
+            output.extend(content_lines)
+            output.append('')
+        
+        return '\n'.join(output)
 
 
 def main():
@@ -244,10 +292,11 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Example:
-  %(prog)s screenplay.fountain -o reorganized.fountain
+  %(prog)s screenplay.fountain
   
-This will parse screenplay.fountain and create reorganized.fountain with all
-content grouped by camera setup (A, B, C, etc.) for efficient filming.
+This will parse screenplay.fountain and create:
+- SCHEDULE_screenplay.fountain (grouped by setup for filming)
+- SETUPSCREENPLAY_screenplay.fountain (chronological with setup headers)
         '''
     )
     
@@ -256,33 +305,37 @@ content grouped by camera setup (A, B, C, etc.) for efficient filming.
         help='Path to the input Fountain file'
     )
     
-    parser.add_argument(
-        '-o', '--output',
-        dest='output_file',
-        help='Path to the output file (default: adds "_by_setup" to input filename)'
-    )
     
     args = parser.parse_args()
     
-    # Generate default output filename if not provided
-    if not args.output_file:
-        input_parts = args.input_file.rsplit('/', 1)
-        if len(input_parts) == 2:
-            directory, filename = input_parts
-            args.output_file = f'{directory}/SHOTLIST_{filename}'
-        else:
-            args.output_file = f'SHOTLIST_{args.input_file}'
+    # Generate output filenames
+    input_parts = args.input_file.rsplit('/', 1)
+    if len(input_parts) == 2:
+        directory, filename = input_parts
+        schedule_file = f'{directory}/SCHEDULE_{filename}'
+        screenplay_file = f'{directory}/SETUPSCREENPLAY_{filename}'
+    else:
+        schedule_file = f'SCHEDULE_{args.input_file}'
+        screenplay_file = f'SETUPSCREENPLAY_{args.input_file}'
     
     try:
         # Parse and reorganize the file
         parser = FountainSetupParser()
         reorganized_content = parser.parse_file(args.input_file)
         
-        # Write output
-        with open(args.output_file, 'w', encoding='utf-8') as f:
+        # Generate screenplay content
+        screenplay_content = parser.parse_file_as_screenplay(args.input_file)
+        
+        # Write both outputs
+        with open(schedule_file, 'w', encoding='utf-8') as f:
             f.write(reorganized_content)
         
-        print(f'Successfully reorganized {args.input_file} -> {args.output_file}')
+        with open(screenplay_file, 'w', encoding='utf-8') as f:
+            f.write(screenplay_content)
+        
+        print(f'Successfully reorganized {args.input_file}:')
+        print(f'  Schedule: {schedule_file}')
+        print(f'  Screenplay: {screenplay_file}')
         
     except FileNotFoundError:
         print(f'Error: Could not find input file "{args.input_file}"', file=sys.stderr)
