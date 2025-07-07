@@ -1,10 +1,22 @@
-# Fountain Shot List Parser
+# Fountain Setup Scheduler
 
 A Python CLI tool that reorganizes Fountain screenplay files by camera setup for efficient filming.
 
 ## Overview
 
 This tool parses Fountain screenplay files containing camera setup annotations and reorganizes the content by setup letter (A, B, C, etc.). This allows film crews to shoot all scenes using the same camera setup together, regardless of their position in the script.
+
+## Motivation
+
+This tool was created for small-scale video production, particularly for solo creators making content for TikTok, YouTube Shorts, Instagram Reels, and similar platforms. When you're a one-person crew, constantly moving camera setups is time-consuming and disrupts creative flow. 
+
+By reorganizing your script to group all shots from the same camera angle/position together, you can:
+- Set up once, shoot multiple scenes
+- Minimize equipment adjustments
+- Maintain consistent lighting and framing
+- Work more efficiently as a solo filmmaker
+
+Instead of following script order and moving your tripod 20 times, you can shoot all "Setup A" content, then move once to "Setup B", and so on.
 
 ## Installation
 
@@ -96,7 +108,7 @@ This allows quick reference to both the original scene number and the camera set
 ## Example Workflow
 
 1. Write your screenplay with setup annotations
-2. Run the parser to generate a shot list organized by setup
+2. Run the parser to generate a shooting schedule organized by setup
 3. Film all "SETUP A" shots together, then all "SETUP B" shots, etc.
 4. Reference scene numbers to maintain story continuity during editing
 
