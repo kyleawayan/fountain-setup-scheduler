@@ -169,11 +169,49 @@ class FountainSetupParser:
             output.append(f'# SETUP {setup_letter}')
             output.append('')
             
+            # Track scene/setup combinations for disambiguation
+            scene_setup_count = {}
+            
             # Add each scene's content
             for scene in scenes:
+                # Create key for tracking this scene/setup combination
+                scene_setup_key = (scene.scene_number, scene.setup.letter)
+                
+                # Get disambiguation suffix
+                if scene_setup_key not in scene_setup_count:
+                    scene_setup_count[scene_setup_key] = 0
+                    suffix = ''
+                else:
+                    scene_setup_count[scene_setup_key] += 1
+                    count = scene_setup_count[scene_setup_key]
+                    
+                    # Generate suffix: A-Z, then AA-ZZ, then AAA-ZZZ
+                    if count <= 26:
+                        # Single letter: A-Z
+                        suffix = chr(ord('A') + count - 1)
+                    elif count <= 26 + 26*26:
+                        # Double letters: AA-ZZ
+                        count -= 26
+                        first = (count - 1) // 26
+                        second = (count - 1) % 26
+                        suffix = chr(ord('A') + first) + chr(ord('A') + second)
+                    elif count <= 26 + 26*26 + 26*26*26:
+                        # Triple letters: AAA-ZZZ
+                        count -= (26 + 26*26)
+                        first = (count - 1) // (26 * 26)
+                        second = ((count - 1) // 26) % 26
+                        third = (count - 1) % 26
+                        suffix = chr(ord('A') + first) + chr(ord('A') + second) + chr(ord('A') + third)
+                    else:
+                        raise ValueError(
+                            f"Too many variations of Scene {scene.scene_number}, Setup {scene.setup.letter}. "
+                            f"Maximum of {26 + 26*26 + 26*26*26} variations supported."
+                        )
+                
                 # Add scene heading with setup description and marker
                 scene_label = f'Scene {scene.scene_number}' if scene.scene_number else 'Scene'
-                output.append(f'.[ ] From {scene_label} (SETUP {scene.setup.letter}: {scene.setup.description}) #{scene.scene_number}{scene.setup.letter}#')
+                marker = f'#{scene.scene_number}{scene.setup.letter}{suffix}#'
+                output.append(f'.[ ] From {scene_label} (SETUP {scene.setup.letter}: {scene.setup.description}) {marker}')
                 output.append('')
                 
                 # Add content lines, removing leading/trailing empty lines and transitions
