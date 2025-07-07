@@ -87,12 +87,18 @@ Insert shot of hands working.
 
 ### Scene Numbering
 
-Each scene heading includes a unique marker in the format `#SceneNumberSetupLetter#`:
-- `#1A#` = Scene 1, Setup A
+Each scene heading includes a unique marker in the format `#SceneNumberSetupLetter[Suffix]#`:
+- `#1A#` = Scene 1, Setup A (first occurrence)
 - `#1B#` = Scene 1, Setup B  
 - `#2A#` = Scene 2, Setup A
 
-This allows quick reference to both the original scene number and the camera setup.
+When the same scene has multiple segments with the same setup letter (but different descriptions), disambiguation suffixes are added:
+- `#1A#` = First occurrence of Scene 1, Setup A
+- `#1AA#` = Second occurrence of Scene 1, Setup A
+- `#1AB#` = Third occurrence of Scene 1, Setup A
+- ... continues through `#1AZ#`, then `#1AAA#`, `#1AAB#`, etc.
+
+This allows quick reference to both the original scene number and the camera setup while handling complex scenes with multiple setup variations.
 
 ## Features
 
@@ -103,7 +109,8 @@ This allows quick reference to both the original scene number and the camera set
 - Preserves all dialogue, action lines, and sound effects
 - Removes transition lines ("CUT TO:", "FADE TO:", etc.) as they don't apply to reorganized content
 - Includes full setup descriptions for context
-- Handles multiple setup variations (e.g., "SETUP A: wide" vs "SETUP A: close")
+- Handles multiple setup variations with automatic disambiguation (e.g., "SETUP A: wide" vs "SETUP A: close")
+- Supports up to 18,278 variations per scene/setup combination using suffix system (A-Z, AA-ZZ, AAA-ZZZ)
 
 ## Example Workflow
 
