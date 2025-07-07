@@ -157,18 +157,23 @@ class FountainSetupParser:
         output = []
         
         # Sort setup letters alphabetically
-        for setup_letter in sorted(setup_groups.keys()):
+        for i, setup_letter in enumerate(sorted(setup_groups.keys())):
             scenes = setup_groups[setup_letter]
             
-            # Add setup heading
-            output.append(f'.SETUP {setup_letter}')
+            # Add setup divider (except for the first setup)
+            if i > 0:
+                output.append('---')
+                output.append('')
+            
+            # Add setup header
+            output.append(f'# SETUP {setup_letter}')
             output.append('')
             
             # Add each scene's content
             for scene in scenes:
-                # Add synopsis with scene number and full setup description
+                # Add scene heading with setup description and marker
                 scene_label = f'Scene {scene.scene_number}' if scene.scene_number else 'Scene'
-                output.append(f'= [ ] From {scene_label} (SETUP {scene.setup.letter}: {scene.setup.description})')
+                output.append(f'.[ ] From {scene_label} (SETUP {scene.setup.letter}: {scene.setup.description}) #{scene.scene_number}{scene.setup.letter}#')
                 output.append('')
                 
                 # Add content lines, removing leading/trailing empty lines and transitions

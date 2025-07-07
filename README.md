@@ -51,26 +51,43 @@ Insert shot of hands working.
 
 ## Output Format
 
-The tool reorganizes content by setup letter, maintaining scene context:
+The tool reorganizes content by setup letter, with clear sections and trackable scene headings:
 
 ```fountain
-.SETUP A
+# SETUP A
 
-= From Scene 1 (SETUP A: Tripod behind booth for wide coverage)
+.[ ] From Scene 1 (SETUP A: Tripod behind booth for wide coverage) #1A#
 
 Character walks into frame.
 
-.SETUP B
+.[ ] From Scene 2 (SETUP A: Tripod behind booth for wide coverage) #2A#
 
-= From Scene 1 (SETUP B: Handheld close-up)
+Character delivers dialogue.
+
+---
+
+# SETUP B
+
+.[ ] From Scene 1 (SETUP B: Handheld close-up) #1B#
 
 Insert shot of hands working.
 ```
+
+### Scene Numbering
+
+Each scene heading includes a unique marker in the format `#SceneNumberSetupLetter#`:
+- `#1A#` = Scene 1, Setup A
+- `#1B#` = Scene 1, Setup B  
+- `#2A#` = Scene 2, Setup A
+
+This allows quick reference to both the original scene number and the camera setup.
 
 ## Features
 
 - Groups all content by setup letter (A, B, C, etc.)
 - Maintains chronological order within each setup
+- Includes checkboxes `[ ]` for tracking completed shots
+- Adds scene/setup markers (e.g., `#1A#`, `#2B#`) for easy reference
 - Preserves all dialogue, action lines, and sound effects
 - Removes transition lines ("CUT TO:", "FADE TO:", etc.) as they don't apply to reorganized content
 - Includes full setup descriptions for context
