@@ -168,7 +168,7 @@ class FountainSetupParser:
             for scene in scenes:
                 # Add synopsis with scene number and full setup description
                 scene_label = f'Scene {scene.scene_number}' if scene.scene_number else 'Scene'
-                output.append(f'= From {scene_label} (SETUP {scene.setup.letter}: {scene.setup.description})')
+                output.append(f'= [ ] From {scene_label} (SETUP {scene.setup.letter}: {scene.setup.description})')
                 output.append('')
                 
                 # Add content lines, removing leading/trailing empty lines and transitions
