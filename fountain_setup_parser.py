@@ -182,6 +182,9 @@ class FountainSetupParser:
                     # Skip transition lines (lines ending with "TO:")
                     if line.strip().endswith('TO:'):
                         continue
+                    # Skip synopsis lines (lines starting with "=")
+                    if line.strip().startswith('='):
+                        continue
                     content_lines.append(line)
                 
                 # Remove leading/trailing empty lines
